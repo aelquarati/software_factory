@@ -1,0 +1,33 @@
+version: '3'
+
+volumes:
+  jenkins_master_data:
+  jenkins_master_log:
+  jenkins_worker_data:
+    
+networks:
+  netconf:
+    driver: bridge
+
+secrets:
+  github_key:
+    file: /home/othogo/.ssh/github_othmane
+
+services:
+  jenkins_master:
+    build: ./jenkins_master
+    container_name: jenkins_master
+    restart: unless-stopped
+    networks:
+      - netconf
+    ports:
+      - 80:8080
+     # - 50000:50000
+    volumes:
+      - "jenkins_master_data:/var/jenkins_home"
+      - "jenkins_master_log:/var/log/jenkins_home"
+      - "./casc_configs:/var/jenkins_home/casc_configs"
+      - "./jenkins_master/.ssh:/var/jenkins_home/.ssh"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    secrets:
+      - github_key

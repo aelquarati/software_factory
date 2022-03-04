@@ -1,0 +1,80 @@
+#jenkins configuration
+#https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/external-workspace-manager
+jenkins:
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code plugin"
+  numExecutors: 8
+  scmCheckoutRetryCount: 2
+  mode: NORMAL
+  authorizationStrategy:
+    loggedInUsersCanDoAnything: {allowAnonymousRead: false}
+  clouds:
+    - docker:
+        name: "docker"
+        dockerApi:
+          dockerHost:
+            uri: "unix:///var/run/docker.sock"
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: NODE_VERSION
+            value: node12
+          - key: Path
+            value: $Path;/usr/local/bin/node_modules/pm2/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: jenkins
+         password: jenkins
+  remotingSecurity: #enable agent (master access control)
+    enabled: true
+
+security:
+  scriptApproval:
+    approvedSignatures:
+      - method groovy.json.JsonBuilder call java.lang.Object[]
+      - method groovy.json.JsonBuilder call java.util.Map
+      - method groovy.json.JsonBuilder toPrettyString
+      - method groovy.lang.GroovyObject invokeMethod java.lang.String java.lang.Object
+      - method java.lang.ProcessBuilder redirectErrorStream boolean
+      - method java.lang.ProcessBuilder start
+      - method java.lang.String getBytes
+      - new groovy.json.JsonBuilder
+      - new groovy.json.JsonBuilder java.lang.Object
+      - new java.lang.ProcessBuilder java.lang.String[]
+      - new java.lang.String byte[]
+      - staticMethod groovy.util.Eval me java.lang.String java.lang.Object java.lang.String
+      - staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods getAt java.util.Collection java.lang.String
+      - staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods inspect java.lang.Object
+      - staticMethod org.codehaus.groovy.runtime.EncodingGroovyMethods decodeBase64 java.lang.String
+      - staticMethod org.codehaus.groovy.runtime.EncodingGroovyMethods encodeBase64 byte[]
+      - staticMethod org.codehaus.groovy.runtime.ProcessGroovyMethods getText java.lang.Process
+#tools
+tool:
+  git:
+    installations:
+      - name: git
+        home: /usr/bin/git
+  nodejs:
+    installations:
+      - name: "node12"
+        properties:
+          - installSource:
+              installers:
+                - nodeJSInstaller:
+                    id: "12.16.1"
+                    npmPackagesRefreshHours: 48 #default is 72
+
+#https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/credentials
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: github_jenkins
+              username: jenkins
+              description: "SSH private key file. for github"
+              privateKeySource:
+                directEntry:
+                  privateKey: ${github_key}
